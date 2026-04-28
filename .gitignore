@@ -4,7 +4,10 @@ dist
 .DS_Store
 .local-node
 .local-gh
+.local-gh-browser.cmd
 .npm-cache
+gh-auth-url.txt
+.gh-device.json
 node-v*-win-x64.zip
 gh_*_windows_amd64.zip
 *.tsbuildinfo
