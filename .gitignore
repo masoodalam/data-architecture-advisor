@@ -3,6 +3,8 @@ dist
 .env
 .DS_Store
 .local-node
+.local-gh
 .npm-cache
 node-v*-win-x64.zip
+gh_*_windows_amd64.zip
 *.tsbuildinfo
