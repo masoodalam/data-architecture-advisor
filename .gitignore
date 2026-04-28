@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+.DS_Store
+.local-node
+.npm-cache
+node-v*-win-x64.zip
+*.tsbuildinfo
