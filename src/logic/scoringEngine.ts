@@ -53,7 +53,7 @@ function buildRiskHeatmap(scores: DimensionScore[]): RiskItem[] {
       const impact = score.dimension === "securityCompliance" || score.dimension === "governance" ? 5 : Math.ceil(6 - score.score);
       const likelihood = Math.ceil(6 - score.score);
       const product = impact * likelihood;
-      const severity = product >= 20 ? "Critical" : product >= 14 ? "High" : product >= 8 ? "Medium" : "Low";
+      const severity: RiskItem["severity"] = product >= 20 ? "Critical" : product >= 14 ? "High" : product >= 8 ? "Medium" : "Low";
       return {
         area: score.label,
         impact,
