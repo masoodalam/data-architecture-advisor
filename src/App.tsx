@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { scoreAssessment } from "./logic/scoringEngine";
 import { AssessmentPage } from "./pages/AssessmentPage";
 import { LandingPage } from "./pages/LandingPage";
+import { MethodologyPage } from "./pages/MethodologyPage";
 import { ReportPage } from "./pages/ReportPage";
 import type { Answers } from "./types";
 import { clearAnswers, loadAnswers, saveAnswers } from "./utils/storage";
 
-type View = "landing" | "assessment" | "report";
+type View = "landing" | "methodology" | "assessment" | "report";
 
 export default function App() {
   const [view, setView] = useState<View>("landing");
@@ -47,5 +48,9 @@ export default function App() {
     return <ReportPage answers={answers} result={result} onBack={() => setView("assessment")} onRestart={restart} />;
   }
 
-  return <LandingPage onStart={() => setView("assessment")} />;
+  if (view === "methodology") {
+    return <MethodologyPage onBack={() => setView("landing")} onStart={() => setView("assessment")} />;
+  }
+
+  return <LandingPage onStart={() => setView("assessment")} onMethodology={() => setView("methodology")} />;
 }
