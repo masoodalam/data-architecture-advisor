@@ -14,7 +14,7 @@ export function LandingPage({ onStart }: { onStart: () => void }) {
               Assess data architecture maturity across ingestion, storage, metadata, governance, quality, security, cost, operating model, AI readiness, and AWS adoption. Produce a practical consulting-grade roadmap in the browser.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button onClick={onStart} className="bg-white text-ink hover:bg-slate-100">
+              <Button onClick={onStart} className="border border-teal-200 bg-teal text-white shadow-lg shadow-teal-950/20 hover:bg-teal-700">
                 Start assessment <ArrowRight className="h-4 w-4" />
               </Button>
               <a href="#method" className="inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">
