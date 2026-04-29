@@ -1,7 +1,15 @@
-import { ArrowRight, BarChart3, FileText, ShieldCheck } from "lucide-react";
+import { ArrowRight, BarChart3, Calculator, FileText, ShieldCheck } from "lucide-react";
 import { Button } from "../components/Button";
 
-export function LandingPage({ onStart, onMethodology }: { onStart: () => void; onMethodology: () => void }) {
+export function LandingPage({
+  onStart,
+  onMethodology,
+  onAwsCostDesigner,
+}: {
+  onStart: () => void;
+  onMethodology: () => void;
+  onAwsCostDesigner: () => void;
+}) {
   return (
     <main className="min-h-screen bg-mist">
       <section className="relative overflow-hidden bg-ink text-white">
@@ -20,6 +28,9 @@ export function LandingPage({ onStart, onMethodology }: { onStart: () => void; o
               <button type="button" onClick={onMethodology} className="inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">
                 View methodology
               </button>
+              <Button onClick={onAwsCostDesigner} variant="secondary" className="border-teal-200 bg-white/95 text-ink hover:bg-teal-50">
+                <Calculator className="h-4 w-4" /> AWS Cost Designer
+              </Button>
             </div>
           </div>
           <div className="grid content-end gap-3">

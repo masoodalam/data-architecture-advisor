@@ -1,16 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import { scoreAssessment } from "./logic/scoringEngine";
 import { AssessmentPage } from "./pages/AssessmentPage";
+import { AwsCostDesignerPage } from "./pages/AwsCostDesignerPage";
 import { LandingPage } from "./pages/LandingPage";
 import { MethodologyPage } from "./pages/MethodologyPage";
 import { ReportPage } from "./pages/ReportPage";
 import type { Answers } from "./types";
 import { clearAnswers, loadAnswers, saveAnswers } from "./utils/storage";
 
-type View = "landing" | "methodology" | "assessment" | "report";
+type View = "landing" | "methodology" | "awsCostDesigner" | "assessment" | "report";
+
+function viewFromPath(): View {
+  if (window.location.pathname.endsWith("/aws-cost-designer")) return "awsCostDesigner";
+  return "landing";
+}
+
+function pathForView(view: View): string {
+  const base = "/data-architecture-advisor";
+  return view === "awsCostDesigner" ? `${base}/aws-cost-designer` : `${base}/`;
+}
 
 export default function App() {
-  const [view, setView] = useState<View>("landing");
+  const [view, setView] = useState<View>(() => viewFromPath());
   const [answers, setAnswers] = useState<Answers>(() => loadAnswers());
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -18,7 +29,20 @@ export default function App() {
     saveAnswers(answers);
   }, [answers]);
 
+  useEffect(() => {
+    const handlePopState = () => setView(viewFromPath());
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const result = useMemo(() => scoreAssessment(answers), [answers]);
+
+  function navigate(nextView: View) {
+    setView(nextView);
+    if (nextView !== "assessment" && nextView !== "report") {
+      window.history.pushState({}, "", pathForView(nextView));
+    }
+  }
 
   function handleAnswer(id: string, value: string | string[]) {
     setAnswers((current) => ({ ...current, [id]: value }));
@@ -28,7 +52,7 @@ export default function App() {
     clearAnswers();
     setAnswers({});
     setCurrentStep(0);
-    setView("landing");
+    navigate("landing");
   }
 
   if (view === "assessment") {
@@ -49,8 +73,12 @@ export default function App() {
   }
 
   if (view === "methodology") {
-    return <MethodologyPage onBack={() => setView("landing")} onStart={() => setView("assessment")} />;
+    return <MethodologyPage onBack={() => navigate("landing")} onStart={() => setView("assessment")} />;
   }
 
-  return <LandingPage onStart={() => setView("assessment")} onMethodology={() => setView("methodology")} />;
+  if (view === "awsCostDesigner") {
+    return <AwsCostDesignerPage onBack={() => navigate("landing")} />;
+  }
+
+  return <LandingPage onStart={() => setView("assessment")} onMethodology={() => setView("methodology")} onAwsCostDesigner={() => navigate("awsCostDesigner")} />;
 }
