@@ -1,11 +1,7 @@
 import { ArrowRight, BarChart3, FileText, ShieldCheck } from "lucide-react";
 import { Button } from "../components/Button";
 
-export function LandingPage({ onStart }: { onStart: () => void }) {
-  function scrollToMethodology() {
-    document.getElementById("method")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
+export function LandingPage({ onStart, onMethodology }: { onStart: () => void; onMethodology: () => void }) {
   return (
     <main className="min-h-screen bg-mist">
       <section className="relative overflow-hidden bg-ink text-white">
@@ -21,7 +17,7 @@ export function LandingPage({ onStart }: { onStart: () => void }) {
               <Button onClick={onStart} className="border border-teal-200 bg-teal text-white shadow-lg shadow-teal-950/20 hover:bg-teal-700">
                 Start assessment <ArrowRight className="h-4 w-4" />
               </Button>
-              <button type="button" onClick={scrollToMethodology} className="inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">
+              <button type="button" onClick={onMethodology} className="inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">
                 View methodology
               </button>
             </div>
