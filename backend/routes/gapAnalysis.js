@@ -4,6 +4,8 @@ import {
   ConverseCommand,
   ConverseStreamCommand,
 } from '@aws-sdk/client-bedrock-runtime';
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import mammoth from 'mammoth';
 
 export const gapRouter = Router();
 
@@ -11,42 +13,35 @@ const REGION   = process.env.AWS_REGION       ?? 'eu-west-2';
 const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? 'anthropic.claude-opus-4-6-v1';
 const bedrock  = new BedrockRuntimeClient({ region: REGION });
 
-// ─── System prompt (vision analysis) ──────────────────────────────────────────
+// ─── File type helpers ─────────────────────────────────────────────────────────
 
-const VISION_SYSTEM = `You are a senior enterprise data architect with TOGAF 9.2, DAMA-DMBOK 2, and UK GDS certifications. You specialise in data architecture gap analysis, assessing diagrams against:
-- TOGAF ADM phases (Architecture Vision, Business Architecture, Data Architecture, Technology Architecture)
-- DAMA-DMBOK 2 knowledge areas
-- FAIR data principles (Findable, Accessible, Interoperable, Reusable)
-- DCAT-AP 3 metadata standards
-- UK GDS / CDDO data architecture standards
-- Cyber Essentials Plus and ISO 27001
-- Open-source first vendor neutral recommendations (with AWS/Azure/GCP equivalents)
+const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']);
 
-You will receive an architecture diagram image. Analyse it thoroughly across 18 categories and output ONLY valid JSON — no markdown, no prose outside JSON.
+function isImage(mimeType) {
+  return IMAGE_TYPES.has(mimeType);
+}
 
-GAP CATEGORIES TO ASSESS:
-1. ingestion: Data ingestion patterns, connectors, streaming vs batch
-2. storage: Storage layers, formats (Parquet/Delta/Iceberg), tiering
-3. transformation: ETL/ELT, dbt, data processing frameworks
-4. governance: Data governance policies, ownership, stewardship
-5. quality: Data quality checks, Great Expectations, validation
-6. security: RBAC, encryption, PII/GDPR handling, audit trails
-7. lineage: End-to-end data lineage tracking
-8. catalogue: Data catalogue, metadata management, discovery
-9. observability: Monitoring, alerting, SLA/SLO tracking
-10. cicd: CI/CD pipelines for data, DataOps practices
-11. analytics: BI, self-service analytics, consumption patterns
-12. ml_ai: ML/AI readiness, feature stores, model serving
-13. cost: Cost attribution, optimisation, lifecycle management
-14. interoperability: APIs, open standards, data sharing
-15. cloud_portability: Vendor lock-in risk, multi-cloud strategy
-16. data_contracts: Schema contracts, SLAs between producers/consumers
-17. environments: Dev/test/prod environment management
-18. operating_model: Ownership model, data mesh vs centralised
+async function extractText(buffer, mimeType) {
+  if (mimeType === 'application/pdf') {
+    const result = await pdfParse(buffer);
+    return result.text;
+  }
+  if (
+    mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    mimeType === 'application/msword'
+  ) {
+    const result = await mammoth.extractRawText({ buffer });
+    return result.value;
+  }
+  throw new Error(`Unsupported file type: ${mimeType}`);
+}
 
+// ─── System prompts ────────────────────────────────────────────────────────────
+
+const GAP_SCHEMA = `
 OUTPUT FORMAT (ONLY JSON, no markdown):
 {
-  "summary": "2-3 sentence expert overview of what the diagram shows",
+  "summary": "2-3 sentence expert overview of what the document describes",
   "architecture_type": "Data Warehouse|Data Lake|Lakehouse|Data Mesh|Hub and Spoke|Event Streaming|Microservices|Lambda|Kappa|Hybrid|Unknown",
   "maturity_score": <1.0-5.0>,
   "maturity_classification": "Ad hoc|Developing|Managed|Advanced|Optimised",
@@ -55,7 +50,7 @@ OUTPUT FORMAT (ONLY JSON, no markdown):
       "category": "<category_key>",
       "label": "<human label>",
       "severity": "critical|high|medium|low",
-      "finding": "<1-2 sentence specific finding from the diagram>",
+      "finding": "<1-2 sentence specific finding>",
       "recommendation": "<specific actionable recommendation>",
       "tools": ["<open source tool>", "<AWS equivalent>"],
       "score": <1-5>
@@ -78,12 +73,55 @@ OUTPUT FORMAT (ONLY JSON, no markdown):
 }
 
 Rules:
-- gaps array: include ALL 18 categories, even if no gap (score 4-5 means no gap, severity "low")
+- gaps array: include ALL 18 categories, even if no gap (score 4-5 = no gap, severity "low")
 - clarifying_questions: 3-6 questions targeting the most critical gaps
-- maturity_score: average of gap scores
-- Be specific — reference actual elements visible in the diagram`;
+- maturity_score: average of gap scores`;
 
-const REFINE_SYSTEM = `You are the same senior enterprise data architect. You have already analysed an architecture diagram and produced a gap analysis JSON. Now the user has answered a clarifying question. Update the analysis JSON incorporating their answer.
+const GAP_CATEGORIES = `
+GAP CATEGORIES TO ASSESS:
+1. ingestion: Data ingestion patterns, connectors, streaming vs batch
+2. storage: Storage layers, formats (Parquet/Delta/Iceberg), tiering
+3. transformation: ETL/ELT, dbt, data processing frameworks
+4. governance: Data governance policies, ownership, stewardship
+5. quality: Data quality checks, Great Expectations, validation
+6. security: RBAC, encryption, PII/GDPR handling, audit trails
+7. lineage: End-to-end data lineage tracking
+8. catalogue: Data catalogue, metadata management, discovery
+9. observability: Monitoring, alerting, SLA/SLO tracking
+10. cicd: CI/CD pipelines for data, DataOps practices
+11. analytics: BI, self-service analytics, consumption patterns
+12. ml_ai: ML/AI readiness, feature stores, model serving
+13. cost: Cost attribution, optimisation, lifecycle management
+14. interoperability: APIs, open standards, data sharing
+15. cloud_portability: Vendor lock-in risk, multi-cloud strategy
+16. data_contracts: Schema contracts, SLAs between producers/consumers
+17. environments: Dev/test/prod environment management
+18. operating_model: Ownership model, data mesh vs centralised`;
+
+const PERSONA = `You are a senior enterprise data architect with TOGAF 9.2, DAMA-DMBOK 2, and UK GDS certifications. You specialise in data architecture gap analysis, assessing designs against:
+- TOGAF ADM phases (Architecture Vision, Business Architecture, Data Architecture, Technology Architecture)
+- DAMA-DMBOK 2 knowledge areas
+- FAIR data principles (Findable, Accessible, Interoperable, Reusable)
+- DCAT-AP 3 metadata standards
+- UK GDS / CDDO data architecture standards
+- Cyber Essentials Plus and ISO 27001
+- Open-source first vendor neutral recommendations (with AWS/Azure/GCP equivalents)`;
+
+const VISION_SYSTEM = `${PERSONA}
+
+You will receive an architecture diagram image. Analyse it thoroughly across 18 categories and output ONLY valid JSON — no markdown, no prose outside JSON.
+${GAP_CATEGORIES}
+${GAP_SCHEMA}
+Be specific — reference actual elements visible in the diagram.`;
+
+const DOCUMENT_SYSTEM = `${PERSONA}
+
+You will receive the text content extracted from an architecture document (PDF or Word). Analyse it thoroughly across 18 categories and output ONLY valid JSON — no markdown, no prose outside JSON.
+${GAP_CATEGORIES}
+${GAP_SCHEMA}
+Be specific — reference actual sections, components, and statements from the document. Where information is absent from the document, note that as a gap requiring clarification.`;
+
+const REFINE_SYSTEM = `You are the same senior enterprise data architect. You have already analysed an architecture design and produced a gap analysis JSON. Now the user has answered a clarifying question. Update the analysis JSON incorporating their answer.
 
 Rules:
 - Output ONLY valid JSON in the same schema as the original analysis
@@ -94,7 +132,7 @@ Rules:
 - Update report_readiness (increase it as questions are answered)
 - Keep all 18 gap categories in gaps array`;
 
-const REPORT_SYSTEM = `You are the same senior enterprise data architect. You have conducted a full gap analysis of an architecture diagram with clarifying questions answered. Now generate a comprehensive consulting-grade architecture gap report.
+const REPORT_SYSTEM = `You are the same senior enterprise data architect. You have conducted a full gap analysis with clarifying questions answered. Now generate a comprehensive consulting-grade architecture gap report.
 
 Structure the report as flowing Markdown with these sections:
 # Executive Summary
@@ -127,32 +165,74 @@ gapRouter.post('/analyse', async (req, res) => {
     return res.status(400).json({ error: 'imageBase64 is required' });
   }
 
-  const userContent = [];
-
-  userContent.push({
-    image: {
-      format: mimeType.split('/')[1] ?? 'png',
-      source: { bytes: Buffer.from(imageBase64, 'base64') },
-    },
-  });
-
-  if (context.trim()) {
-    userContent.push({ text: `Additional context from the user: ${context}` });
-  }
-
-  userContent.push({ text: 'Please analyse this architecture diagram and produce the gap analysis JSON.' });
+  const buffer = Buffer.from(imageBase64, 'base64');
+  let messages;
 
   try {
-    const response = await bedrock.send(new ConverseCommand({
-      modelId: MODEL_ID,
-      system: [{ text: VISION_SYSTEM }],
-      messages: [{ role: 'user', content: userContent }],
-      inferenceConfig: { maxTokens: 4000, temperature: 0.3 },
-    }));
+    if (isImage(mimeType)) {
+      // ── Vision path ──
+      const userContent = [
+        {
+          image: {
+            format: mimeType.split('/')[1] ?? 'png',
+            source: { bytes: buffer },
+          },
+        },
+      ];
+      if (context.trim()) {
+        userContent.push({ text: `Additional context: ${context}` });
+      }
+      userContent.push({ text: 'Please analyse this architecture diagram and produce the gap analysis JSON.' });
 
-    const raw = response.output?.message?.content?.[0]?.text ?? '{}';
-    const match = raw.match(/\{[\s\S]*\}/);
-    res.json(JSON.parse(match ? match[0] : raw));
+      messages = [{ role: 'user', content: userContent }];
+
+      const response = await bedrock.send(new ConverseCommand({
+        modelId: MODEL_ID,
+        system: [{ text: VISION_SYSTEM }],
+        messages,
+        inferenceConfig: { maxTokens: 4000, temperature: 0.3 },
+      }));
+
+      const raw = response.output?.message?.content?.[0]?.text ?? '{}';
+      const match = raw.match(/\{[\s\S]*\}/);
+      return res.json(JSON.parse(match ? match[0] : raw));
+
+    } else {
+      // ── Document text extraction path ──
+      let extractedText;
+      try {
+        extractedText = await extractText(buffer, mimeType);
+      } catch (extractErr) {
+        return res.status(400).json({ error: `Could not extract text: ${extractErr.message}` });
+      }
+
+      if (!extractedText || extractedText.trim().length < 50) {
+        return res.status(400).json({ error: 'Document appears to be empty or could not be read. Please check the file and try again.' });
+      }
+
+      const textContent = [
+        {
+          text: `Architecture document content:\n\n${extractedText.slice(0, 80000)}${
+            extractedText.length > 80000 ? '\n\n[Document truncated at 80,000 characters]' : ''
+          }${context.trim() ? `\n\nAdditional context from the user: ${context}` : ''}
+
+Please analyse this architecture document and produce the gap analysis JSON.`,
+        },
+      ];
+
+      messages = [{ role: 'user', content: textContent }];
+
+      const response = await bedrock.send(new ConverseCommand({
+        modelId: MODEL_ID,
+        system: [{ text: DOCUMENT_SYSTEM }],
+        messages,
+        inferenceConfig: { maxTokens: 4000, temperature: 0.3 },
+      }));
+
+      const raw = response.output?.message?.content?.[0]?.text ?? '{}';
+      const match = raw.match(/\{[\s\S]*\}/);
+      return res.json(JSON.parse(match ? match[0] : raw));
+    }
   } catch (err) {
     console.error('[gap/analyse]', err);
     res.status(500).json({ error: err.message });

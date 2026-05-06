@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, FileText, Info, Upload, X, Zap } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, FileText, FileType2, Info, Upload, X, Zap } from "lucide-react";
 import { type ReactElement, useCallback, useRef, useState } from "react";
 import {
   type ClarifyingQuestion,
@@ -10,6 +10,20 @@ import {
 } from "../services/gapService";
 
 type Phase = "upload" | "analysing" | "review" | "generating" | "report";
+
+const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']);
+const ACCEPTED_TYPES = 'image/png,image/jpeg,image/jpg,image/gif,image/webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword';
+
+function fileTypeLabel(mimeType: string): string {
+  if (mimeType === 'application/pdf') return 'PDF';
+  if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'Word Document';
+  if (mimeType === 'application/msword') return 'Word Document';
+  return 'Image';
+}
+
+function isImageType(mimeType: string): boolean {
+  return IMAGE_TYPES.has(mimeType);
+}
 
 const SEVERITY_COLOR: Record<string, string> = {
   critical: "bg-red-50 border-red-300 text-red-800",
@@ -195,15 +209,20 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const loadFile = useCallback((file: File) => {
-    if (!file.type.match(/image\/(png|jpeg|jpg|gif|webp)/)) {
-      setError('Please upload a PNG, JPG, JPEG, GIF, or WebP image.');
+    const accepted = ACCEPTED_TYPES.split(',');
+    if (!accepted.includes(file.type)) {
+      setError('Please upload a PNG, JPG, GIF, WebP image, PDF, or Word document (.docx).');
       return;
     }
     setMimeType(file.type);
     const reader = new FileReader();
     reader.onload = e => {
       const dataUrl = e.target?.result as string;
-      setImagePreview(dataUrl);
+      if (isImageType(file.type)) {
+        setImagePreview(dataUrl);
+      } else {
+        setImagePreview(null);
+      }
       setImageBase64(dataUrl.split(',')[1]);
       setError(null);
     };
@@ -286,7 +305,7 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
             <button onClick={onBack} className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-white/70 hover:text-white hover:bg-white/10 transition-colors">
               <ArrowLeft className="h-3.5 w-3.5" /> Back
             </button>
-            <span className="text-sm font-bold text-white">Data Architecture Gap Analysis</span>
+            <span className="text-sm font-bold text-white">Architecture Gap Analysis</span>
           </div>
           {analysis && (
             <div className="flex items-center gap-2">
@@ -311,8 +330,8 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
               <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-sg mb-4">
                 <Upload className="h-7 w-7 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-sg-text">Upload Architecture Diagram</h1>
-              <p className="mt-2 text-sm text-slate-500">AI-powered gap analysis aligned to TOGAF, FAIR, DCAT-AP 3, and UK GDS standards</p>
+              <h1 className="text-2xl font-bold text-sg-text">Upload Architecture Document</h1>
+              <p className="mt-2 text-sm text-slate-500">AI-powered gap analysis across 18 dimensions — aligned to TOGAF, FAIR, DCAT-AP 3, and UK GDS standards</p>
             </div>
 
             {/* Drop zone */}
@@ -328,12 +347,12 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
               <input
                 ref={fileRef}
                 type="file"
-                accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                accept={ACCEPTED_TYPES}
                 className="hidden"
                 onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f); }}
               />
 
-              {imagePreview ? (
+              {imageBase64 && imagePreview ? (
                 <div className="relative p-4">
                   <img src={imagePreview} alt="Architecture diagram preview" className="mx-auto max-h-64 rounded-lg object-contain" />
                   <button
@@ -343,11 +362,27 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
                     <X className="h-4 w-4" />
                   </button>
                 </div>
+              ) : imageBase64 && !imagePreview ? (
+                <div className="relative p-6 flex items-center gap-4">
+                  <div className="flex-shrink-0 flex items-center justify-center h-14 w-14 rounded-xl bg-sg-light border border-sg/20">
+                    <FileType2 className="h-7 w-7 text-sg" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-sg-text truncate">{fileTypeLabel(mimeType)} uploaded</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Ready to analyse — text will be extracted automatically</p>
+                  </div>
+                  <button
+                    onClick={e => { e.stopPropagation(); setImagePreview(null); setImageBase64(null); }}
+                    className="ml-auto flex-shrink-0 rounded-full bg-white p-1 shadow-sm hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
                   <Upload className="h-10 w-10 text-slate-300 mb-3" />
-                  <p className="text-sm font-semibold text-slate-500">Drop your diagram here or click to browse</p>
-                  <p className="text-xs text-slate-400 mt-1">PNG, JPG, JPEG, GIF, WebP — max 8 MB</p>
+                  <p className="text-sm font-semibold text-slate-500">Drop your file here or click to browse</p>
+                  <p className="text-xs text-slate-400 mt-1">Images (PNG, JPG, GIF, WebP) · PDF · Word (.docx) — max 8 MB</p>
                 </div>
               )}
             </div>
@@ -394,9 +429,16 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
               </div>
             </div>
             <h2 className="text-xl font-bold text-sg-text">Analysing your architecture…</h2>
-            <p className="mt-2 text-sm text-slate-500">Claude is reviewing across 18 architectural dimensions</p>
+            <p className="mt-2 text-sm text-slate-500">
+              {isImageType(mimeType) ? 'Claude Vision is reviewing your diagram' : 'Extracting and analysing document content'} across 18 dimensions
+            </p>
             <div className="mt-6 space-y-2 text-xs text-slate-400">
-              {['Parsing diagram elements', 'Mapping to TOGAF ADM phases', 'Assessing FAIR principles', 'Identifying gaps and risks'].map((step, i) => (
+              {[
+                isImageType(mimeType) ? 'Parsing diagram elements' : 'Extracting document text',
+                'Mapping to TOGAF ADM phases',
+                'Assessing FAIR principles',
+                'Identifying gaps and risks',
+              ].map((step, i) => (
                 <div key={step} className="flex items-center justify-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-sg animate-pulse" style={{ animationDelay: `${i * 0.4}s` }} />
                   {step}
