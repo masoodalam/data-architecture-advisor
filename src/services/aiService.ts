@@ -33,20 +33,57 @@ export interface StandardsAlignment {
   governance_maturity: number;
 }
 
+export interface SliderConfig {
+  min: number;
+  max: number;
+  minLabel: string;
+  maxLabel: string;
+  default: number;
+}
+
 export interface TurnInteraction {
-  type: 'open_text' | 'yes_no' | 'true_false' | 'multiple_choice' | 'none';
+  type: 'open_text' | 'yes_no' | 'true_false' | 'multiple_choice' | 'slider' | 'none';
   question: string;
   options?: string[];
+  slider?: SliderConfig;
+}
+
+export interface ArchitectureImpact {
+  scalability: 'positive' | 'Low' | 'Medium' | 'High' | null;
+  governance:  'positive' | 'Low' | 'Medium' | 'High' | null;
+  cost:        'positive' | 'Low' | 'Medium' | 'High' | null;
+  interoperability: 'positive' | 'Low' | 'Medium' | 'High' | null;
+}
+
+export interface InsightFeedItem {
+  type: 'observation' | 'risk' | 'gap' | 'opportunity';
+  text: string;
+  severity?: 'high' | 'medium' | 'low';
+  domain?: string;
+}
+
+export interface LiveReport {
+  current_state_summary: string;
+  top_risks: string[];
+  report_completeness: number;
+  report_confidence: 'High' | 'Medium' | 'Low';
 }
 
 export interface AssessmentTurn {
   insight: string;
-  implication: string;
+  why_it_matters: string;
+  architecture_impact: ArchitectureImpact;
   interaction: TurnInteraction;
+  can_skip: boolean;
   domain: string;
   assessment_progress: DomainProgress;
+  domain_confidence: DomainProgress;
   fair_scores: FairScores;
   standards_alignment: StandardsAlignment;
+  insight_feed: InsightFeedItem[];
+  patterns_detected: string[];
+  benchmarking: string | null;
+  live_report: LiveReport;
   is_complete: boolean;
   result?: AssessmentResult;
 }
