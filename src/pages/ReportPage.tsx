@@ -1,5 +1,8 @@
 import { ArrowLeft, Printer, RotateCcw } from "lucide-react";
 import { ArchitectureDiagram } from "../components/ArchitectureDiagram";
+import { AIChat } from "../components/AIChat";
+import { AIInsights } from "../components/AIInsights";
+import { AIRoadmap } from "../components/AIRoadmap";
 import { Button } from "../components/Button";
 import { CostComplexityChart, DomainBarChart, MaturityRadar, PriorityMatrix } from "../components/Charts";
 import { RiskHeatmap } from "../components/RiskHeatmap";
@@ -47,6 +50,10 @@ export function ReportPage({ answers, result, onBack, onRestart }: ReportPagePro
               <p className="text-sm text-slate-300 print:text-slate-500">out of 5.0</p>
             </div>
           </div>
+        </section>
+
+        <section className="mt-6">
+          <AIInsights result={result} answers={answers} />
         </section>
 
         <section className="mt-6 grid gap-5 lg:grid-cols-3">
@@ -130,28 +137,11 @@ export function ReportPage({ answers, result, onBack, onRestart }: ReportPagePro
           </div>
         </ReportSection>
 
-        <ReportSection title="Roadmap and priority matrix">
-          <div className="grid gap-6 xl:grid-cols-[1fr_.8fr]">
-            <div className="rounded-md border border-slate-200 bg-white p-5 shadow-panel">
-              <h3 className="text-lg font-bold text-ink">3-phase roadmap</h3>
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
-                {[
-                  ["Phase 1", "Quick wins", "Launch DataHub foundations, Great Expectations checks for critical datasets, MetaWorks standards, risk heatmap remediation, and owner assignments."],
-                  ["Phase 2", "Stabilisation", "Standardise ingestion, storage layers, CI/CD, environment separation, lineage capture, SLA monitoring, and security evidence."],
-                  ["Phase 3", "Scale and optimise", "Optimise cost, automate lifecycle controls, mature data contracts, expand AI-ready data products, and reduce portability risk."],
-                ].map(([phase, title, copy]) => (
-                  <div key={phase} className="rounded-md border border-slate-200 p-4">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-teal">{phase}</p>
-                    <h4 className="mt-2 text-lg font-bold text-ink">{title}</h4>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{copy}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-md border border-slate-200 bg-white p-5 shadow-panel">
-              <h3 className="text-lg font-bold text-ink">Priority action matrix</h3>
-              <PriorityMatrix result={result} />
-            </div>
+        <ReportSection title="AI-generated roadmap">
+          <AIRoadmap result={result} />
+          <div className="mt-6 rounded-md border border-slate-200 bg-white p-5 shadow-panel">
+            <h3 className="text-lg font-bold text-ink">Priority action matrix</h3>
+            <PriorityMatrix result={result} />
           </div>
         </ReportSection>
 
@@ -161,6 +151,8 @@ export function ReportPage({ answers, result, onBack, onRestart }: ReportPagePro
           </div>
         </ReportSection>
       </div>
+
+      <AIChat result={result} />
     </main>
   );
 }
