@@ -106,6 +106,7 @@ function InteractionWidget({
   disabled: boolean;
 }) {
   const [sliderVal, setSliderVal] = useState(interaction.slider?.default ?? 3);
+  const [selected, setSelected] = useState<string[]>([]);
 
   const btnBase = 'rounded-xl border px-5 py-2.5 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95';
 
@@ -122,14 +123,37 @@ function InteractionWidget({
   }
 
   if (interaction.type === 'multiple_choice' && interaction.options?.length) {
+    function toggle(opt: string) {
+      setSelected(prev => prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt]);
+    }
     return (
-      <div className="flex flex-wrap gap-2 mt-4">
-        {interaction.options.map(opt => (
-          <button key={opt} disabled={disabled} onClick={() => onAnswer(opt)}
-            className={`${btnBase} border-sg/30 bg-sg-light text-sg-text hover:bg-sg-light hover:border-sg`}>
-            {opt}
+      <div className="mt-4 space-y-3">
+        <p className="text-xs text-slate-500">Select all that apply</p>
+        <div className="flex flex-wrap gap-2">
+          {interaction.options.map(opt => {
+            const active = selected.includes(opt);
+            return (
+              <button
+                key={opt} disabled={disabled} onClick={() => toggle(opt)}
+                className={`${btnBase} ${active
+                  ? 'border-sg bg-sg text-white shadow-sm'
+                  : 'border-sg/30 bg-sg-light text-sg-text hover:border-sg'
+                }`}
+              >
+                {active && <span className="mr-1.5">✓</span>}{opt}
+              </button>
+            );
+          })}
+        </div>
+        {selected.length > 0 && (
+          <button
+            disabled={disabled}
+            onClick={() => { onAnswer(selected.join(', ')); setSelected([]); }}
+            className={`${btnBase} w-full bg-sg text-white border-sg hover:bg-sg-hover`}
+          >
+            Confirm: {selected.join(', ')}
           </button>
-        ))}
+        )}
       </div>
     );
   }
