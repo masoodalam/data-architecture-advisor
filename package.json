@@ -1,9 +1,10 @@
 {
   "name": "data-architecture-advisor",
+  "description": "AI-powered data architecture maturity assessment and gap analysis platform — Claude Opus 4.6, AWS Bedrock, TOGAF 9.2, FAIR, DCAT-AP 3, UK GDS",
   "private": false,
-  "version": "0.1.0",
+  "version": "2.0.0",
   "type": "module",
-  "homepage": "https://masoo.github.io/data-architecture-advisor/",
+  "homepage": "https://masoodalam.github.io/data-architecture-advisor/",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",

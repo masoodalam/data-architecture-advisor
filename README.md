@@ -1,123 +1,146 @@
-# Data Architecture Advisor
+# Scotland Data Architecture Advisor
 
 <p align="center">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" width="120" height="80" role="img" aria-label="Data Architecture Advisor logo">
-    <rect width="96" height="64" rx="8" fill="#111827"/>
-    <path d="M18 18h18v12H18zM60 18h18v12H60zM39 40h18v12H39z" fill="#0f766e"/>
-    <path d="M36 24h24M48 30v10" stroke="#f8fafc" stroke-width="4" stroke-linecap="round"/>
-  </svg>
+  <img src="https://img.shields.io/badge/Claude_Opus_4.6-AWS_Bedrock-blue?style=for-the-badge" alt="Claude Opus 4.6" />
+  <img src="https://img.shields.io/badge/TOGAF_9.2-Aligned-navy?style=for-the-badge" alt="TOGAF 9.2" />
+  <img src="https://img.shields.io/badge/FAIR_Principles-DCAT--AP_3-teal?style=for-the-badge" alt="FAIR" />
+  <img src="https://img.shields.io/badge/UK_GDS-Aligned-003399?style=for-the-badge" alt="UK GDS" />
 </p>
 
-> A **free, open-source, browser-based** enterprise tool for assessing data architecture maturity and generating practical recommendations across open source tooling, AWS services, governance, data quality, security, cost, operating model, and roadmap improvements. No assessment data leaves your browser.
-
-[![React](https://img.shields.io/badge/React-19-blue.svg)](#tech-stack)
-[![Vite](https://img.shields.io/badge/Vite-7-646CFF.svg)](#tech-stack)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](#tech-stack)
-[![Client-side only](https://img.shields.io/badge/backend-none-lightgrey.svg)](#privacy)
-[![No tracking](https://img.shields.io/badge/tracking-none-green.svg)](#privacy)
+> An **AI-powered enterprise data architecture platform** aligned to the Scottish Government design system. Assess data architecture maturity through an adaptive AI interview, analyse architecture diagrams for gaps, and generate consulting-grade reports — all powered by Claude Opus 4.6 via AWS Bedrock.
 
 ---
 
-## Try it now
+## Features
 
-**[-> Launch Data Architecture Advisor](https://masoodalam.github.io/data-architecture-advisor/)**
+### AI Maturity Assessment
+A structured interview conducted by an AI architect persona (TOGAF 9.2 + DAMA-DMBOK 2 + UK GDS certified). Covers **8 domains** and **19 dimensions** through 14–20 adaptive exchanges, producing a full consulting report with maturity scores, risk heatmap, roadmap, and recommendations.
 
-The tool works entirely in your browser. No login, no account, no server-side data collection.
+- Adaptive follow-up questions based on your answers
+- Typed interactions: sliders, yes/no, multiple choice, free text
+- Live intelligence panel updating in real time (FAIR scores, domain coverage, insight feed, architecture patterns)
+- Open-source first recommendations with AWS/Azure/GCP equivalents
+- Aligned to DCAT-AP 3, FAIR Principles, Cyber Essentials Plus, ISO 27001, GDS service standards
 
----
+### Data Architecture Gap Analysis
+Upload an architecture diagram image and Claude Vision analyses it across **18 architectural categories**. Answer clarifying questions to refine the analysis, then generate a streaming consulting-grade report.
 
-## What it assesses
+- Drag-and-drop diagram upload (PNG, JPG, GIF, WebP)
+- Gaps classified by severity: Critical / High / Medium / Low
+- FAIR scores and standards alignment updated after each answer
+- Three-panel review: diagram + severity summary / gap cards + clarifying questions / FAIR & standards metrics
+- Three-phase improvement roadmap (Foundations → Stabilise → Scale)
+- Print / Save PDF export
 
-The assessment scores your organisation across **19 data architecture maturity dimensions**, each on a 1-5 maturity scale:
-
-| Dimension | What it covers |
-|-----------|----------------|
-| **Ingestion** | Source inventory, ingestion automation, batch and streaming patterns |
-| **Storage** | Raw, curated, and consumption layers; warehouse and lake architecture |
-| **Transformation** | Reusable transformation standards, testing, dbt and AWS Glue suitability |
-| **BI and consumption** | Trusted reporting datasets, governed self-service analytics |
-| **Catalogue and metadata** | DataHub adoption, dataset discovery, ownership, metadata completeness |
-| **Governance** | Naming standards, schema standards, business glossary, MetaWorks usage |
-| **Data quality** | Great Expectations checks, validation visibility, advanced quality rules |
-| **Observability** | Pipeline alerts, freshness, completeness, accuracy, and timeliness monitoring |
-| **Security and compliance** | Access controls, audit trails, sensitive data, GDPR readiness |
-| **Cost efficiency** | Cost optimisation, serverless fit, managed service efficiency |
-| **Lifecycle and retention** | Retention, archival, deletion, and lifecycle automation |
-| **Ownership model** | Business owners, stewards, escalation paths, operating model clarity |
-| **Data contracts** | Producer-consumer contracts, schema evolution, breaking change control |
-| **CI/CD** | Version control, automated tests, release promotion for data pipelines |
-| **Environment management** | Dev, test, staging, production separation and controlled promotion |
-| **Lineage** | Source-to-dashboard lineage and column-level impact analysis |
-| **SLAs and freshness** | Critical dataset SLAs, SLIs, freshness targets, and visibility |
-| **ML/AI readiness** | Governed training data, feature readiness, AI-ready curated zones |
-| **Cloud and portability** | AWS adoption readiness, vendor lock-in risk, open formats, portability |
+### AWS Cost Designer
+Interactive cost estimation tool for AWS data platform components.
 
 ---
 
-## How it works
+## Architecture Domains Assessed
 
-1. **Organisation context** - captures the organisation or programme name and preferred recommendation mode: open source heavy, hybrid, or AWS managed.
-2. **Assessment sections** - guides users through 24 sections covering architecture, governance, quality, security, cost, delivery, ownership, lifecycle, AI readiness, and cloud posture.
-3. **Maturity scoring** - scores responses from 1.0 to 5.0 across each dimension and calculates an overall maturity score.
-4. **Recommendation engine** - maps low-scoring dimensions to practical actions and tool recommendations including DataHub, Great Expectations, MetaWorks, Amazon S3, Amazon Redshift, AWS Glue, AWS Lambda, Step Functions, Amazon Kinesis, Apache Airflow, dbt, Superset or Metabase, Prometheus and Grafana, ClickHouse, and Airbyte.
-5. **Consulting report** - generates an in-browser report with executive summary, maturity classification, radar chart, bar chart, risk heatmap, current vs target architecture, open source vs AWS comparison, priority matrix, roadmap, and cost vs complexity view.
-6. **Print/export** - use the browser print action to export the report as PDF.
+| Domain | What it covers |
+|--------|----------------|
+| **Business Goals** | Strategy, data vision, stakeholder needs, maturity ambition, KPIs |
+| **Data Sources** | Source systems, data types, volumes, velocity, formats, quality at source |
+| **Architecture** | Ingestion, processing, storage, integration patterns, current vs target |
+| **Governance** | Policies, ownership, stewardship, classification, DCAT alignment |
+| **Security** | RBAC, encryption, PII/GDPR/DPA 2018, audit, Cyber Essentials, ISO 27001 |
+| **Analytics** | BI, self-service, ML/AI readiness, data products, consumption patterns |
+| **Operations** | Monitoring, SLAs, reliability, CI/CD, environment management, incident |
+| **Cost** | Attribution, cloud spend optimisation, lifecycle, budget governance |
 
----
+## Maturity Dimensions (19)
 
-## Privacy
+Ingestion · Storage · Transformation · BI & Consumption · Catalogue & Metadata · Governance · Data Quality · Observability · Security & Compliance · Cost Efficiency · Lifecycle & Retention · Ownership Model · Data Contracts · CI/CD · Environments · Lineage · SLAs & Freshness · ML/AI Readiness · Cloud & Portability
 
-- **All computation happens in your browser.** Answers, scores, and report content are not transmitted to an application server.
-- The only persistence used by the app is **`localStorage`**, local to your browser.
-- You can clear saved answers at any time using the **Restart** action.
-- There are **no cookies, no analytics, no tracking pixels**, and no backend API.
-- The production app is a static GitHub Pages deployment.
+## Gap Analysis Categories (18)
 
----
-
-## Methodology
-
-The tool uses a pragmatic 1-5 maturity scale:
-
-| Score | Level | Meaning |
-|-------|-------|---------|
-| **1** | Not in place | Capability is absent, manual, or undocumented |
-| **2** | Informal | Some practices exist but are inconsistent or person-dependent |
-| **3** | Defined | Practices are documented and used for key datasets or workflows |
-| **4** | Standardised | Practices are standardised, measured, and embedded into delivery |
-| **5** | Optimised | Capability is automated, continuously improved, and widely adopted |
-
-Overall maturity is classified as:
-
-| Score range | Classification |
-|-------------|----------------|
-| **1.0 to 1.9** | Ad hoc |
-| **2.0 to 2.9** | Developing |
-| **3.0 to 3.9** | Managed |
-| **4.0 to 4.5** | Advanced |
-| **4.6 to 5.0** | Optimised |
-
-Recommendations are generated by comparing current maturity against a target posture, then mapping gaps to actions, governance controls, tooling options, AWS services, and a three-phase roadmap.
+Ingestion · Storage · Transformation · Governance · Quality · Security · Lineage · Catalogue · Observability · CI/CD · Analytics · ML/AI · Cost · Interoperability · Cloud Portability · Data Contracts · Environments · Operating Model
 
 ---
 
-## Tech stack
+## Standards Alignment
 
+| Standard | Coverage |
+|----------|----------|
+| **TOGAF 9.2** | Architecture Vision, Business Architecture, Data Architecture, Technology Architecture (ADM phases) |
+| **DAMA-DMBOK 2** | All 11 knowledge areas |
+| **FAIR Principles** | Findable, Accessible, Interoperable, Reusable — scored 0–100 |
+| **DCAT-AP 3** | Dataset/distribution registration, catalogue structure |
+| **UK GDS / CDDO** | Service standard alignment, open standards |
+| **Cyber Essentials Plus** | Security baseline checks |
+| **ISO 27001** | Information security controls |
+
+---
+
+## Maturity Scale
+
+| Score | Classification | Meaning |
+|-------|---------------|---------|
+| **< 2.0** | Ad hoc | Capability absent, manual, or undocumented |
+| **2.0 – 2.9** | Developing | Inconsistent practices, person-dependent |
+| **3.0 – 3.9** | Managed | Documented and used for key datasets |
+| **4.0 – 4.5** | Advanced | Standardised, measured, embedded |
+| **> 4.5** | Optimised | Automated, continuously improved |
+
+Target posture: **4.2** across all dimensions.
+
+---
+
+## Tech Stack
+
+### Frontend
 | Technology | Purpose |
 |------------|---------|
-| **React** | Browser application UI |
-| **Vite** | Build and development tooling |
-| **TypeScript** | Typed business logic and components |
-| **Tailwind CSS** | Responsive visual design |
-| **Recharts** | Radar chart, bar chart, and matrix visualisations |
-| **Lucide React** | UI icons |
-| **GitHub Pages** | Static hosting |
-| **GitHub Actions** | Automated deployment |
+| **React 19** | UI components |
+| **TypeScript 5** | Type safety |
+| **Vite 7** | Build tooling |
+| **Tailwind CSS 3** | Scottish Government design system colours |
+| **Recharts** | Maturity radar, bar charts, risk heatmap |
+| **Lucide React** | Icons |
+
+### Backend
+| Technology | Purpose |
+|------------|---------|
+| **Node.js 20 / Express** | API server |
+| **AWS Bedrock** | Claude Opus 4.6 (`anthropic.claude-opus-4-6-v1`, eu-west-2) |
+| **AWS SDK v3** | `ConverseCommand` (structured JSON) + `ConverseStreamCommand` (SSE) |
+| **Server-Sent Events** | Real-time streaming for chat and report generation |
+
+### Infrastructure
+| Technology | Purpose |
+|------------|---------|
+| **Docker** | Multi-stage builds for frontend and backend |
+| **Nginx** | Static file serving + reverse proxy to backend API |
+| **AWS EC2** | Hosting in eu-west-2 |
+| **IAM Instance Role** | Bedrock authentication — no hard-coded credentials |
 
 ---
 
-## Run locally
+## API Endpoints
 
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Health check |
+| `POST` | `/api/assess/message` | AI assessment turn (structured JSON) |
+| `POST` | `/api/narrative` | Generate executive narrative (streaming SSE) |
+| `POST` | `/api/roadmap` | Generate three-phase roadmap |
+| `POST` | `/api/chat` | Post-assessment chat (streaming SSE) |
+| `POST` | `/api/gap/analyse` | Claude Vision diagram analysis |
+| `POST` | `/api/gap/refine` | Update gap analysis after clarifying answer |
+| `POST` | `/api/gap/report` | Generate full gap report (streaming SSE) |
+
+---
+
+## Run Locally
+
+### Prerequisites
+- Node.js 20+
+- AWS credentials with Bedrock access in `eu-west-2`
+- Model access enabled: `anthropic.claude-opus-4-6-v1`
+
+### Frontend
 ```bash
 git clone https://github.com/masoodalam/data-architecture-advisor.git
 cd data-architecture-advisor
@@ -125,122 +148,89 @@ npm install
 npm run dev
 ```
 
-Then open the local Vite URL shown in the terminal.
+### Backend
+```bash
+cd backend
+npm install
+AWS_REGION=eu-west-2 BEDROCK_MODEL_ID=anthropic.claude-opus-4-6-v1 node server.js
+```
 
-To create a production build:
+---
+
+## Deploy with Docker
 
 ```bash
-npm run build
-npm run preview
+# Create bridge network so nginx can resolve the backend hostname
+docker network create advisor-net
+
+# Build and run backend
+docker build -t advisor-backend ./backend
+docker run -d --name backend --network advisor-net \
+  -e AWS_REGION=eu-west-2 \
+  -e BEDROCK_MODEL_ID=anthropic.claude-opus-4-6-v1 \
+  advisor-backend
+
+# Build and run frontend
+docker build -t advisor-frontend .
+docker run -d --name advisor-frontend --network advisor-net \
+  -p 80:80 advisor-frontend
+```
+
+Or use the included `deploy.sh` for the full build-and-restart sequence on EC2.
+
+---
+
+## IAM Permissions Required
+
+The EC2 instance role needs:
+
+```json
+{
+  "Effect": "Allow",
+  "Action": [
+    "bedrock:InvokeModel",
+    "bedrock:InvokeModelWithResponseStream"
+  ],
+  "Resource": "arn:aws:bedrock:eu-west-2::foundation-model/anthropic.claude-opus-4-6-v1"
+}
 ```
 
 ---
 
-## Deploy your own copy
-
-### GitHub Pages
-
-1. Fork this repository.
-2. Go to **Settings -> Pages**.
-3. Set Source to **GitHub Actions**.
-4. Push to `main`.
-5. The workflow builds the Vite app and publishes the `dist` artifact.
-
-Your fork will be live at:
+## Repository Structure
 
 ```text
-https://<your-username>.github.io/data-architecture-advisor/
+├── backend/
+│   ├── routes/
+│   │   ├── ai.js               # Narrative, roadmap, post-assessment chat
+│   │   ├── assessmentChat.js   # AI assessment interview (TOGAF/FAIR/DCAT persona)
+│   │   └── gapAnalysis.js      # Vision analysis, refine, streaming report
+│   └── server.js               # Express app
+├── src/
+│   ├── components/             # Shared UI, charts, heatmap
+│   ├── data/                   # Question bank, tool mappings
+│   ├── logic/                  # Scoring, recommendations, maturity model
+│   ├── pages/
+│   │   ├── LandingPage.tsx         # Scottish Gov hero + nav
+│   │   ├── AssessmentChatPage.tsx  # Three-panel AI interview
+│   │   ├── GapAnalysisPage.tsx     # Diagram upload + gap review + report
+│   │   ├── ReportPage.tsx          # Full maturity report
+│   │   └── AwsCostDesignerPage.tsx
+│   ├── services/
+│   │   ├── aiService.ts        # Assessment + chat API calls + types
+│   │   └── gapService.ts       # Gap analysis API calls + types
+│   └── types/                  # Shared TypeScript types
+├── Dockerfile                  # Multi-stage frontend build (node builder + nginx)
+├── nginx.conf                  # Static files + /api proxy to backend container
+└── deploy.sh                   # EC2 Docker deployment script
 ```
-
-### Any static host
-
-Run `npm run build` and upload the generated `dist/` directory to any static host such as Netlify, Vercel, Cloudflare Pages, S3 + CloudFront, or an internal web server.
-
----
-
-## Customise for your context
-
-Most business content is separated from UI components and lives in `src/data` and `src/logic`.
-
-| File | What to edit |
-|------|--------------|
-| `src/data/questionBank.ts` | Assessment sections, questions, options, and scoring dimensions |
-| `src/data/toolMappings.ts` | Required tools, AWS services, and architecture mode guidance |
-| `src/logic/scoringEngine.ts` | Dimension aggregation, overall scoring, and risk heatmap logic |
-| `src/logic/recommendationEngine.ts` | Recommendation rules, actions, priorities, and tool mappings |
-| `src/logic/maturityModel.ts` | Dimension labels, classification, and maturity narrative |
-| `src/logic/reportBuilder.ts` | Executive summary, architecture comparison, and report helper content |
-
----
-
-## Repository structure
-
-```text
-src/
-  components/       Shared UI, charts, diagrams, heatmap
-  data/             Question bank and tool mappings
-  logic/            Scoring, recommendations, maturity model, report builder
-  pages/            Landing, assessment, and report pages
-  types/            Shared TypeScript types
-  utils/            Browser storage helpers
-```
-
----
-
-## Contributing
-
-Contributions are welcome. Useful areas include:
-
-- Additional assessment questions
-- More detailed recommendation rules
-- Sector-specific scoring guidance
-- Accessibility improvements
-- More export formats
-- Additional architecture modes
-- Better examples for AWS, open source, and hybrid target architectures
-
----
-
-## Roadmap
-
-### v1 (current)
-
-- 24-section assessment flow
-- 19 maturity dimensions
-- Open source heavy, hybrid, and AWS managed recommendation modes
-- DataHub, Great Expectations, and MetaWorks focused recommendations
-- AWS service recommendations for S3, Redshift, Glue, Lambda, Step Functions, and Kinesis
-- Radar chart, bar chart, risk heatmap, priority matrix, roadmap, and architecture diagram
-- Print-friendly report export
-- localStorage persistence
-- GitHub Pages deployment
-
-### Planned for v1.1
-
-- Markdown or JSON report export
-- Previous assessment comparison mode
-- Weighted scoring by organisation context
-- Sector-specific templates
-- Expanded tool catalogue
-- Accessibility audit and keyboard flow improvements
 
 ---
 
 ## Limitations
 
-- **Self-assessed:** Scores reflect the answers provided by users, not an independent audit.
-- **Point-in-time snapshot:** The report reflects current state at the time the assessment is completed.
-- **Simplified scoring:** The maturity model is intentionally practical and should be calibrated for regulated or highly complex environments.
-- **Browser storage only:** Saved answers are tied to the local browser and device.
-- **No LLM generation:** Recommendations are generated from deterministic rules, not dynamic AI output.
-
----
-
-## Acknowledgements
-
-- **DataHub** for open metadata and catalogue patterns.
-- **Great Expectations** for executable data quality checks.
-- **MetaWorks** for standards catalogue thinking.
-- **AWS** services including Amazon S3, Amazon Redshift, AWS Glue, AWS Lambda, Step Functions, and Amazon Kinesis.
-- **Apache Airflow**, **dbt**, **Apache Superset**, **Metabase**, **Prometheus**, **Grafana**, **ClickHouse**, and **Airbyte** for portable data platform capabilities.
-- **React**, **Vite**, **Tailwind CSS**, and **Recharts** for the browser app foundation.
+- **Self-assessed maturity**: Scores reflect answers provided, not an independent audit.
+- **Point-in-time**: Report reflects current state at time of assessment.
+- **AWS Bedrock region**: Configured for `eu-west-2`. Cross-region inference profiles may be blocked by organisational SCPs.
+- **Image size**: Gap analysis supports images up to ~8 MB (10 MB body limit).
+- **Vision accuracy**: Diagram analysis quality depends on image clarity and label legibility.
