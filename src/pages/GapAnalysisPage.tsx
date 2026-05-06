@@ -1,5 +1,5 @@
 import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, FileText, Info, Upload, X, Zap } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { type ReactElement, useCallback, useRef, useState } from "react";
 import {
   type ClarifyingQuestion,
   type GapAnalysis,
@@ -156,7 +156,7 @@ function QuestionWidget({
 
 function MarkdownReport({ markdown }: { markdown: string }) {
   const lines = markdown.split('\n');
-  const elements: JSX.Element[] = [];
+  const elements: ReactElement[] = [];
   let key = 0;
 
   for (const line of lines) {
