@@ -8,7 +8,7 @@ import {
 export const aiRouter = Router();
 
 const REGION   = process.env.AWS_REGION       ?? 'eu-west-2';
-const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? 'eu.anthropic.claude-opus-4-7-v1:0';
+const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? 'eu.anthropic.claude-opus-4-7';
 
 const bedrock = new BedrockRuntimeClient({ region: REGION });
 
