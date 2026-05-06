@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { scoreAssessment } from "./logic/scoringEngine";
+import { AssessmentChatPage } from "./pages/AssessmentChatPage";
 import { AssessmentPage } from "./pages/AssessmentPage";
 import { AwsCostDesignerPage } from "./pages/AwsCostDesignerPage";
 import { LandingPage } from "./pages/LandingPage";
 import { MethodologyPage } from "./pages/MethodologyPage";
 import { ReportPage } from "./pages/ReportPage";
-import type { Answers } from "./types";
+import type { Answers, AssessmentResult } from "./types";
 import { clearAnswers, loadAnswers, saveAnswers } from "./utils/storage";
 
-type View = "landing" | "methodology" | "awsCostDesigner" | "assessment" | "report";
+type View = "landing" | "methodology" | "awsCostDesigner" | "assessment" | "chatAssessment" | "report";
 
 function viewFromPath(): View {
   if (window.location.pathname.endsWith("/aws-cost-designer")) return "awsCostDesigner";
@@ -24,6 +25,7 @@ export default function App() {
   const [view, setView] = useState<View>(() => viewFromPath());
   const [answers, setAnswers] = useState<Answers>(() => loadAnswers());
   const [currentStep, setCurrentStep] = useState(0);
+  const [chatResult, setChatResult] = useState<AssessmentResult | null>(null);
 
   useEffect(() => {
     saveAnswers(answers);
@@ -52,7 +54,18 @@ export default function App() {
     clearAnswers();
     setAnswers({});
     setCurrentStep(0);
+    setChatResult(null);
     navigate("landing");
+  }
+
+  if (view === "chatAssessment") {
+    return (
+      <AssessmentChatPage
+        onComplete={(result) => { setChatResult(result); setView("report"); }}
+        onBack={() => navigate("landing")}
+        onTraditional={() => setView("assessment")}
+      />
+    );
   }
 
   if (view === "assessment") {
@@ -69,7 +82,8 @@ export default function App() {
   }
 
   if (view === "report") {
-    return <ReportPage answers={answers} result={result} onBack={() => setView("assessment")} onRestart={restart} />;
+    const reportResult = chatResult ?? result;
+    return <ReportPage answers={answers} result={reportResult} onBack={() => navigate("landing")} onRestart={restart} />;
   }
 
   if (view === "methodology") {
@@ -80,5 +94,12 @@ export default function App() {
     return <AwsCostDesignerPage onBack={() => navigate("landing")} />;
   }
 
-  return <LandingPage onStart={() => setView("assessment")} onMethodology={() => setView("methodology")} onAwsCostDesigner={() => navigate("awsCostDesigner")} />;
+  return (
+    <LandingPage
+      onStart={() => setView("chatAssessment")}
+      onTraditional={() => setView("assessment")}
+      onMethodology={() => setView("methodology")}
+      onAwsCostDesigner={() => navigate("awsCostDesigner")}
+    />
+  );
 }

@@ -3,10 +3,12 @@ import { Button } from "../components/Button";
 
 export function LandingPage({
   onStart,
+  onTraditional,
   onMethodology,
   onAwsCostDesigner,
 }: {
   onStart: () => void;
+  onTraditional: () => void;
   onMethodology: () => void;
   onAwsCostDesigner: () => void;
 }) {
@@ -32,6 +34,12 @@ export function LandingPage({
                 <Calculator className="h-4 w-4" /> AWS Cost Designer
               </Button>
             </div>
+            <p className="mt-3 text-xs text-slate-400">
+              AI chat interview powered by Claude Opus 4.6 ·{' '}
+              <button onClick={onTraditional} className="underline underline-offset-2 hover:text-slate-200 transition-colors">
+                use traditional questionnaire instead
+              </button>
+            </p>
           </div>
           <div className="grid content-end gap-3">
             {[

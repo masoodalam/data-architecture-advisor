@@ -48,6 +48,40 @@ export async function generateRoadmap(result: AssessmentResult): Promise<AIRoadm
   return res.json() as Promise<AIRoadmap>;
 }
 
+// ─── Assessment interview chat ────────────────────────────────────────────────
+
+export async function* streamAssessmentChat(
+  message: string,
+  history: ChatMessage[],
+): AsyncGenerator<string> {
+  const res = await fetch(`${API_BASE}/assess/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, history }),
+  });
+  if (!res.ok) throw new Error(`Assessment API error: ${res.status}`);
+
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const event = JSON.parse(line.slice(6));
+        if (event.type === 'delta') yield event.text as string;
+        if (event.type === 'error') throw new Error(event.error);
+        if (event.type === 'done') return;
+      } catch { /* skip malformed */ }
+    }
+  }
+}
+
 // ─── Streaming chat ───────────────────────────────────────────────────────────
 
 export async function* streamChat(
