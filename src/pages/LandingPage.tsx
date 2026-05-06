@@ -89,17 +89,11 @@ export function LandingPage({
                 onClick={onStart}
                 className="flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-bold text-sg shadow-lg hover:bg-sg-light transition-colors"
               >
-                Start AI assessment <ArrowRight className="h-4 w-4" />
+                Start Assessment <ArrowRight className="h-4 w-4" />
               </button>
             </div>
             <p className="mt-3 text-xs text-white/50">
-              AI chat interview powered by Claude Opus 4.6 · AWS Bedrock ·{" "}
-              <button
-                onClick={onTraditional}
-                className="underline underline-offset-2 hover:text-white/80 transition-colors"
-              >
-                use traditional questionnaire
-              </button>
+              AI-powered interview · Claude Opus 4.6 · AWS Bedrock eu-west-2
             </p>
           </div>
 
