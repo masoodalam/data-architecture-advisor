@@ -7,6 +7,57 @@ export interface ChatMessage {
   content: string;
 }
 
+// ─── Assessment interview types ───────────────────────────────────────────────
+
+export interface DomainProgress {
+  business_goals: number;
+  data_sources: number;
+  architecture: number;
+  governance: number;
+  security: number;
+  analytics: number;
+  operations: number;
+  cost: number;
+}
+
+export interface FairScores {
+  findable: number;
+  accessible: number;
+  interoperable: number;
+  reusable: number;
+}
+
+export interface StandardsAlignment {
+  dcat: number;
+  metadata_completeness: number;
+  governance_maturity: number;
+}
+
+export interface TurnInteraction {
+  type: 'open_text' | 'yes_no' | 'true_false' | 'multiple_choice' | 'none';
+  question: string;
+  options?: string[];
+}
+
+export interface AssessmentTurn {
+  insight: string;
+  implication: string;
+  interaction: TurnInteraction;
+  domain: string;
+  assessment_progress: DomainProgress;
+  fair_scores: FairScores;
+  standards_alignment: StandardsAlignment;
+  is_complete: boolean;
+  result?: AssessmentResult;
+}
+
+export const DEFAULT_DOMAIN_PROGRESS: DomainProgress = {
+  business_goals: 0, data_sources: 0, architecture: 0, governance: 0,
+  security: 0, analytics: 0, operations: 0, cost: 0,
+};
+export const DEFAULT_FAIR: FairScores = { findable: 0, accessible: 0, interoperable: 0, reusable: 0 };
+export const DEFAULT_STANDARDS: StandardsAlignment = { dcat: 0, metadata_completeness: 0, governance_maturity: 0 };
+
 export interface RoadmapPhase {
   phase: string;
   title: string;
@@ -48,7 +99,22 @@ export async function generateRoadmap(result: AssessmentResult): Promise<AIRoadm
   return res.json() as Promise<AIRoadmap>;
 }
 
-// ─── Assessment interview chat ────────────────────────────────────────────────
+// ─── Assessment interview (structured, non-streaming) ─────────────────────────
+
+export async function sendAssessmentMessage(
+  message: string,
+  history: ChatMessage[],
+): Promise<AssessmentTurn> {
+  const res = await fetch(`${API_BASE}/assess/message`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, history }),
+  });
+  if (!res.ok) throw new Error(`Assessment API error: ${res.status}`);
+  return res.json() as Promise<AssessmentTurn>;
+}
+
+// ─── Assessment interview chat (legacy streaming) ─────────────────────────────
 
 export async function* streamAssessmentChat(
   message: string,

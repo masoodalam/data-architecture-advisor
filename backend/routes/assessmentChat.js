@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { BedrockRuntimeClient, ConverseStreamCommand } from '@aws-sdk/client-bedrock-runtime';
+import {
+  BedrockRuntimeClient,
+  ConverseCommand,
+  ConverseStreamCommand,
+} from '@aws-sdk/client-bedrock-runtime';
 
 export const assessRouter = Router();
 
@@ -8,70 +12,138 @@ const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? 'anthropic.claude-opus-4-6-v1';
 
 const bedrock = new BedrockRuntimeClient({ region: REGION });
 
-const SYSTEM_PROMPT = `You are Alex, a senior data architect at a consulting firm conducting a formal data architecture maturity assessment interview.
+// ─── System prompt ─────────────────────────────────────────────────────────────
 
-Your goal is to assess the organisation across 19 dimensions through focused conversation. You are experienced, direct, and efficient. Ask targeted questions that reveal real operational maturity — not aspirations.
+const SYSTEM_PROMPT = `You are an independent enterprise data architect conducting a structured data architecture maturity assessment. Your credentials:
+- TOGAF-certified enterprise architect
+- DAMA-DMBOK certified data management professional
+- UK public sector data architecture specialist
+- FAIR data principles practitioner
+- Vendor-neutral, open-source first advisor
 
-INTERVIEW RULES:
-- Open by introducing yourself briefly, then ask about their organisation and current data stack
-- Ask 1-2 focused questions per turn, never more
-- Adapt follow-ups based on what their answers reveal
-- Group related dimensions naturally — do not mechanically list topics
-- After covering all 19 dimensions (10–15 exchanges), thank them and output the result
+BEHAVIOUR RULES:
+1. Ask ONE focused question per turn — never more
+2. Dynamically adapt: follow up on vague answers before moving on
+3. Use the most appropriate interaction type (yes_no, true_false, multiple_choice, or open_text)
+4. Be direct, expert, concise — no filler phrases
+5. Remain vendor-agnostic: recommend open-source tools first; name AWS/Azure/GCP equivalents
+6. Align to UK government data standards, DCAT-AP 3, FAIR principles, Cyber Essentials
+7. Do not repeat questions already covered in the conversation history
 
-DIMENSIONS TO ASSESS (score each 1–5):
-1.  ingestion             – how data enters the platform (batch, streaming, CDC, connectors, reliability)
-2.  storage              – data lake / warehouse / lakehouse, formats (Parquet, Delta, Iceberg), tiering
-3.  transformation       – dbt, Spark, scheduling, transform testing, CI for pipelines
-4.  biConsumption        – dashboards, self-service, semantic layer, data products, consumption SLAs
-5.  catalogueMetadata    – DataHub, Alation, schema registry, business glossary, discoverability
-6.  governance           – policies, data ownership, stewards, classification, approval workflows
-7.  dataQuality          – Great Expectations, Soda, DQ rules, alerting, DQ SLAs, coverage
-8.  observability        – pipeline health monitoring, anomaly detection, incident management
-9.  securityCompliance   – RBAC, encryption, PII masking, audit logs, GDPR/SOC2/ISO compliance
-10. costEfficiency       – cost attribution, query optimisation, storage tiering, budget alerts
-11. lifecycleRetention   – data expiry, archival, purging, retention schedules
-12. ownershipOperatingModel – data owners, stewards, accountability, operating model maturity
-13. dataContracts        – agreed schemas and SLAs between data producers and consumers
-14. cicd                 – automated testing and deployment pipelines for data, version control
-15. environmentManagement – dev/staging/prod separation, environment parity, sandbox controls
-16. lineage              – end-to-end lineage tracking, impact analysis, column-level lineage
-17. slaFreshness         – data freshness targets, monitoring freshness against commitments
-18. mlAiReadiness        – feature stores, model training data quality, ML pipeline maturity
-19. cloudPortability     – vendor lock-in risk, open formats, multi-cloud / portability strategy
+DOMAINS TO COVER (track 0–100 per domain):
+- business_goals: strategy, objectives, data maturity ambition, stakeholder needs
+- data_sources: source systems, data types, volumes, velocity, formats, quality
+- architecture: ingestion, processing, storage, integration, current vs target state
+- governance: policies, ownership, classification, DCAT alignment, metadata management
+- security: RBAC, encryption, PII/GDPR, audit logs, compliance (ISO27001, Cyber Essentials)
+- analytics: BI, self-service, ML/AI readiness, data products, consumption patterns
+- operations: monitoring, SLAs, reliability, CI/CD, environment management
+- cost: cost attribution, optimisation, cloud spend, lifecycle management
 
-SCORING GUIDE (1–5):
-1 = No formal practice; ad hoc or absent
-2 = Basic/informal; inconsistent across teams
-3 = Documented and mostly followed; some gaps
-4 = Automated, measured, and widely adopted
-5 = Optimised; industry-leading, continuously improving
+FAIR TRACKING (0–100 per principle):
+- findable: datasets catalogued, indexed, unique identifiers (DOI/URI), searchable
+- accessible: standard APIs, controlled access mechanisms, authenticated retrieval
+- interoperable: open formats (Parquet, Delta Lake, Iceberg, JSON-LD), standard schemas
+- reusable: DQ documented, provenance captured, licensing and usage rights defined
 
-ARCHITECTURE MODE — infer from answers:
-"open-source"  → primarily self-managed open source tools
-"aws-managed"  → primarily AWS managed services (Glue, Redshift, Lake Formation, etc.)
-"hybrid"       → meaningful mix of both
+STANDARDS ALIGNMENT (0–100):
+- dcat: DCAT-AP 3 alignment, dataset registration, catalogue structure
+- metadata_completeness: schema, lineage, ownership, classification documented
+- governance_maturity: policies enforced, accountability clear, audit-ready
 
-CONCLUDING:
-When you have enough signal to score all 19 dimensions, write one closing sentence thanking the client, then output EXACTLY the marker and JSON below — nothing else after the marker:
+EVERY response MUST be ONLY valid JSON matching this exact schema — no text outside the JSON, no markdown code fences:
+{
+  "insight": "1–2 sentence expert observation on what they just told you",
+  "implication": "1 sentence on the architectural or governance implication",
+  "interaction": {
+    "type": "open_text | yes_no | true_false | multiple_choice | none",
+    "question": "Your single focused next question",
+    "options": ["option1", "option2"]
+  },
+  "domain": "business_goals | data_sources | architecture | governance | security | analytics | operations | cost",
+  "assessment_progress": {"business_goals":0,"data_sources":0,"architecture":0,"governance":0,"security":0,"analytics":0,"operations":0,"cost":0},
+  "fair_scores": {"findable":0,"accessible":0,"interoperable":0,"reusable":0},
+  "standards_alignment": {"dcat":0,"metadata_completeness":0,"governance_maturity":0},
+  "is_complete": false,
+  "result": null
+}
 
-[ASSESSMENT_COMPLETE]
-{"mode":"<open-source|hybrid|aws-managed>","overallScore":<avg of 19 scores to 1dp>,"classification":"<Ad hoc|Developing|Managed|Advanced|Optimised>","dimensionScores":[{"dimension":"ingestion","label":"Ingestion","score":<1.0-5.0>,"target":4.2},{"dimension":"storage","label":"Storage","score":<1.0-5.0>,"target":4.2},{"dimension":"transformation","label":"Transformation","score":<1.0-5.0>,"target":4.2},{"dimension":"biConsumption","label":"BI & consumption","score":<1.0-5.0>,"target":4.2},{"dimension":"catalogueMetadata","label":"Catalogue & metadata","score":<1.0-5.0>,"target":4.2},{"dimension":"governance","label":"Governance","score":<1.0-5.0>,"target":4.2},{"dimension":"dataQuality","label":"Data quality","score":<1.0-5.0>,"target":4.2},{"dimension":"observability","label":"Observability","score":<1.0-5.0>,"target":4.2},{"dimension":"securityCompliance","label":"Security & compliance","score":<1.0-5.0>,"target":4.2},{"dimension":"costEfficiency","label":"Cost efficiency","score":<1.0-5.0>,"target":4.2},{"dimension":"lifecycleRetention","label":"Lifecycle & retention","score":<1.0-5.0>,"target":4.2},{"dimension":"ownershipOperatingModel","label":"Ownership model","score":<1.0-5.0>,"target":4.2},{"dimension":"dataContracts","label":"Data contracts","score":<1.0-5.0>,"target":4.2},{"dimension":"cicd","label":"CI/CD","score":<1.0-5.0>,"target":4.2},{"dimension":"environmentManagement","label":"Environments","score":<1.0-5.0>,"target":4.2},{"dimension":"lineage","label":"Lineage","score":<1.0-5.0>,"target":4.2},{"dimension":"slaFreshness","label":"SLAs & freshness","score":<1.0-5.0>,"target":4.2},{"dimension":"mlAiReadiness","label":"ML/AI readiness","score":<1.0-5.0>,"target":4.2},{"dimension":"cloudPortability","label":"Cloud & portability","score":<1.0-5.0>,"target":4.2}],"risks":[{"area":"<label>","likelihood":<1-5>,"impact":<1-5>,"severity":"<Low|Medium|High|Critical>","recommendation":"<specific action>"}],"recommendations":[{"area":"<label>","priority":"<High|Medium|Low>","timeframe":"<Quick win|Stabilise|Scale>","summary":"<one sentence>","actions":["<action>","<action>","<action>"],"tools":["<tool>","<tool>"]}]}
+FIRST TURN (empty history): Use insight to introduce yourself briefly as an expert architect. Set interaction.type = "open_text" and ask about their organisation and primary data challenge. Set all numeric scores to 0.
 
-Classification: <2.0=Ad hoc, <3.0=Developing, <4.0=Managed, ≤4.5=Advanced, >4.5=Optimised
-Risk severity: impact×likelihood ≥20=Critical, ≥14=High, ≥8=Medium, else Low
-Include 3–7 risks and 4–8 recommendations. Output ONLY raw JSON after the marker — no markdown fences.`;
+COMPLETION: Set is_complete: true when all 8 domains are ≥65% covered (typically 12–18 exchanges). When completing, set interaction.type = "none" and populate result with the full AssessmentResult JSON:
+{
+  "mode": "open-source | hybrid | aws-managed",
+  "overallScore": <1.0–5.0 mean of all 19 scores>,
+  "classification": "Ad hoc | Developing | Managed | Advanced | Optimised",
+  "dimensionScores": [
+    {"dimension":"ingestion","label":"Ingestion","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"storage","label":"Storage","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"transformation","label":"Transformation","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"biConsumption","label":"BI & consumption","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"catalogueMetadata","label":"Catalogue & metadata","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"governance","label":"Governance","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"dataQuality","label":"Data quality","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"observability","label":"Observability","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"securityCompliance","label":"Security & compliance","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"costEfficiency","label":"Cost efficiency","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"lifecycleRetention","label":"Lifecycle & retention","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"ownershipOperatingModel","label":"Ownership model","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"dataContracts","label":"Data contracts","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"cicd","label":"CI/CD","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"environmentManagement","label":"Environments","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"lineage","label":"Lineage","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"slaFreshness","label":"SLAs & freshness","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"mlAiReadiness","label":"ML/AI readiness","score":<1.0-5.0>,"target":4.2},
+    {"dimension":"cloudPortability","label":"Cloud & portability","score":<1.0-5.0>,"target":4.2}
+  ],
+  "risks": [{"area":"<dimension label>","likelihood":<1-5>,"impact":<1-5>,"severity":"Low|Medium|High|Critical","recommendation":"<specific action>"}],
+  "recommendations": [{"area":"<dimension label>","priority":"High|Medium|Low","timeframe":"Quick win|Stabilise|Scale","summary":"<one sentence>","actions":["<action>","<action>","<action>"],"tools":["<tool>","<tool>"]}]
+}
+Classification: overallScore <2=Ad hoc, <3=Developing, <4=Managed, ≤4.5=Advanced, >4.5=Optimised
+Include 3–7 risks and 4–8 recommendations. Output ONLY the JSON object — nothing else.`;
 
-// POST /api/assess/chat — SSE streaming interview turn
-assessRouter.post('/chat', async (req, res) => {
+// ─── POST /api/assess/message ──────────────────────────────────────────────────
+// Structured non-streaming turn — returns full JSON per exchange.
+
+assessRouter.post('/message', async (req, res) => {
   const { message = '', history = [] } = req.body;
 
-  // Build Bedrock message array from conversation history
   const messages = history
     .filter(m => m.content?.trim())
     .map(m => ({ role: m.role, content: [{ text: m.content }] }));
 
-  // Add the current user turn (or initial trigger)
+  messages.push({
+    role: 'user',
+    content: [{ text: message.trim() || 'Please begin the assessment interview.' }],
+  });
+
+  try {
+    const response = await bedrock.send(new ConverseCommand({
+      modelId: MODEL_ID,
+      system: [{ text: SYSTEM_PROMPT }],
+      messages,
+      inferenceConfig: { maxTokens: 2500, temperature: 0.4 },
+    }));
+
+    const raw = response.output?.message?.content?.[0]?.text ?? '{}';
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+    res.json(parsed);
+  } catch (err) {
+    console.error('[assess/message]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── POST /api/assess/chat (legacy SSE) ────────────────────────────────────────
+
+assessRouter.post('/chat', async (req, res) => {
+  const { message = '', history = [] } = req.body;
+
+  const messages = history
+    .filter(m => m.content?.trim())
+    .map(m => ({ role: m.role, content: [{ text: m.content }] }));
+
   messages.push({
     role: 'user',
     content: [{ text: message.trim() || 'Please begin the assessment interview.' }],
@@ -97,9 +169,7 @@ assessRouter.post('/chat', async (req, res) => {
       if (event.contentBlockDelta?.delta?.text) {
         send({ type: 'delta', text: event.contentBlockDelta.delta.text });
       }
-      if (event.messageStop) {
-        send({ type: 'done' });
-      }
+      if (event.messageStop) send({ type: 'done' });
     }
   } catch (err) {
     console.error('[assess/chat]', err);
