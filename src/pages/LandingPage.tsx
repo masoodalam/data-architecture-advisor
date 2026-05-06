@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, Calculator, FileText, ShieldCheck } from "lucide-react";
+import { ArrowRight, BarChart3, Calculator, FileText, GitCompare, ShieldCheck } from "lucide-react";
 import { Button } from "../components/Button";
 
 // Scotland Saltire flag as inline SVG
@@ -19,11 +19,13 @@ export function LandingPage({
   onTraditional,
   onMethodology,
   onAwsCostDesigner,
+  onGapAnalysis,
 }: {
   onStart: () => void;
   onTraditional: () => void;
   onMethodology: () => void;
   onAwsCostDesigner: () => void;
+  onGapAnalysis: () => void;
 }) {
   return (
     <main className="min-h-screen bg-sg-surface">
@@ -53,6 +55,12 @@ export function LandingPage({
               className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-white/80 hover:bg-white/10 hover:text-white transition-colors"
             >
               <Calculator className="h-3.5 w-3.5" /> AWS Cost Designer
+            </button>
+            <button
+              onClick={onGapAnalysis}
+              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+            >
+              <GitCompare className="h-3.5 w-3.5" /> Gap Analysis
             </button>
           </div>
         </div>
@@ -90,6 +98,12 @@ export function LandingPage({
                 className="flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-bold text-sg shadow-lg hover:bg-sg-light transition-colors"
               >
                 Start Assessment <ArrowRight className="h-4 w-4" />
+              </button>
+              <button
+                onClick={onGapAnalysis}
+                className="flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-6 py-3 text-sm font-bold text-white hover:bg-white/20 transition-colors"
+              >
+                <GitCompare className="h-4 w-4" /> Gap Analysis
               </button>
             </div>
             <p className="mt-3 text-xs text-white/50">

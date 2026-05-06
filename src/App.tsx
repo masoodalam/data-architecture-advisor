@@ -3,13 +3,14 @@ import { scoreAssessment } from "./logic/scoringEngine";
 import { AssessmentChatPage } from "./pages/AssessmentChatPage";
 import { AssessmentPage } from "./pages/AssessmentPage";
 import { AwsCostDesignerPage } from "./pages/AwsCostDesignerPage";
+import { GapAnalysisPage } from "./pages/GapAnalysisPage";
 import { LandingPage } from "./pages/LandingPage";
 import { MethodologyPage } from "./pages/MethodologyPage";
 import { ReportPage } from "./pages/ReportPage";
 import type { Answers, AssessmentResult } from "./types";
 import { clearAnswers, loadAnswers, saveAnswers } from "./utils/storage";
 
-type View = "landing" | "methodology" | "awsCostDesigner" | "assessment" | "chatAssessment" | "report";
+type View = "landing" | "methodology" | "awsCostDesigner" | "assessment" | "chatAssessment" | "report" | "gapAnalysis";
 
 function viewFromPath(): View {
   if (window.location.pathname.endsWith("/aws-cost-designer")) return "awsCostDesigner";
@@ -94,12 +95,17 @@ export default function App() {
     return <AwsCostDesignerPage onBack={() => navigate("landing")} />;
   }
 
+  if (view === "gapAnalysis") {
+    return <GapAnalysisPage onBack={() => navigate("landing")} />;
+  }
+
   return (
     <LandingPage
       onStart={() => setView("chatAssessment")}
       onTraditional={() => setView("assessment")}
       onMethodology={() => setView("methodology")}
       onAwsCostDesigner={() => navigate("awsCostDesigner")}
+      onGapAnalysis={() => setView("gapAnalysis")}
     />
   );
 }

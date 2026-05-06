@@ -2,15 +2,17 @@ import express from 'express';
 import cors from 'cors';
 import { aiRouter } from './routes/ai.js';
 import { assessRouter } from './routes/assessmentChat.js';
+import { gapRouter } from './routes/gapAnalysis.js';
 
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json({ limit: '4mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, model: process.env.BEDROCK_MODEL_ID }));
 app.use('/api', aiRouter);
 app.use('/api/assess', assessRouter);
+app.use('/api/gap', gapRouter);
 
 // 404 handler
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
