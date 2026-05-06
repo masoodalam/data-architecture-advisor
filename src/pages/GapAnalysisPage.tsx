@@ -2,7 +2,7 @@ import {
   AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight,
   Clock, FileText, FileType2, Info, RefreshCw, Upload, X, Zap,
 } from 'lucide-react';
-import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { type ReactElement, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import {
   type ClarifyingQuestion, type GapAnalysis, type GapItem,
   type GapJob, type JobStep, type Stage1Result,
@@ -160,18 +160,134 @@ function QuestionWidget({ q, onAnswer, disabled }: { q: ClarifyingQuestion; onAn
   );
 }
 
+const SEV_INLINE: Record<string, string> = {
+  critical: 'bg-red-100 text-red-700 border-red-200',
+  high:     'bg-orange-100 text-orange-700 border-orange-200',
+  medium:   'bg-yellow-100 text-yellow-700 border-yellow-200',
+  low:      'bg-green-100 text-green-700 border-green-200',
+  info:     'bg-blue-100 text-blue-700 border-blue-200',
+};
+
+function renderInline(text: string): ReactNode {
+  const parts: ReactNode[] = [];
+  const re = /(\*\*[^*\n]+\*\*|_[^_\n]+_|`[^`\n]+`|\[(CRITICAL|HIGH|MEDIUM|LOW|INFO)\])/gi;
+  let last = 0, idx = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    const t = m[0];
+    if (t.startsWith('**')) {
+      parts.push(<strong key={idx++} className="font-semibold text-slate-900">{t.slice(2, -2)}</strong>);
+    } else if (t.startsWith('_')) {
+      parts.push(<em key={idx++} className="not-italic text-slate-500">{t.slice(1, -1)}</em>);
+    } else if (t.startsWith('`')) {
+      parts.push(<code key={idx++} className="rounded bg-slate-100 px-1 py-0.5 text-[11px] font-mono text-slate-800">{t.slice(1, -1)}</code>);
+    } else {
+      const sev = t.replace(/[\[\]]/g, '').toLowerCase();
+      parts.push(
+        <span key={idx++} className={`inline-block rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${SEV_INLINE[sev] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+          {sev}
+        </span>
+      );
+    }
+    last = m.index + t.length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  if (parts.length === 0) return text;
+  if (parts.length === 1) return parts[0];
+  return <>{parts}</>;
+}
+
 function MarkdownReport({ markdown }: { markdown: string }) {
   const elements: ReactElement[] = [];
-  let key = 0;
-  for (const line of markdown.split('\n')) {
-    if      (line.startsWith('# '))  elements.push(<h1 key={key++} className="text-2xl font-bold text-sg-text mt-6 mb-3">{line.slice(2)}</h1>);
-    else if (line.startsWith('## ')) elements.push(<h2 key={key++} className="text-lg font-bold text-sg mt-5 mb-2 border-b border-slate-100 pb-1">{line.slice(3)}</h2>);
-    else if (line.startsWith('### ')) elements.push(<h3 key={key++} className="text-base font-bold text-sg-text mt-4 mb-1.5">{line.slice(4)}</h3>);
-    else if (line.startsWith('- ') || line.startsWith('* ')) elements.push(<li key={key++} className="ml-4 text-sm text-slate-700 leading-6 list-disc">{line.slice(2)}</li>);
-    else if (/^\d+\. /.test(line))   elements.push(<li key={key++} className="ml-4 text-sm text-slate-700 leading-6 list-decimal">{line.replace(/^\d+\. /,'')}</li>);
-    else if (line.trim() === '')     elements.push(<div key={key++} className="h-2" />);
-    else                             elements.push(<p key={key++} className="text-sm text-slate-700 leading-7">{line}</p>);
+  let k = 0;
+  const lines = markdown.split('\n');
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const tr = line.trim();
+
+    // Table — collect all consecutive pipe lines
+    if (tr.startsWith('|')) {
+      const tbl: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) tbl.push(lines[i++]);
+      const rows = tbl.filter(l => !/^\|[\s:|-]+\|/.test(l.trim()));
+      if (rows.length > 0) {
+        const [head, ...body] = rows;
+        const cells = (r: string) => r.split('|').slice(1, -1).map(c => c.trim());
+        elements.push(
+          <div key={k++} className="overflow-x-auto my-4 rounded-lg border border-slate-200">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-sg-light">
+                  {cells(head).map((c, ci) => (
+                    <th key={ci} className="border-b border-slate-200 px-3 py-2.5 text-left font-bold text-sg-text whitespace-nowrap">{renderInline(c)}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {body.map((row, ri) => (
+                  <tr key={ri} className={ri % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                    {cells(row).map((c, ci) => (
+                      <td key={ci} className="border-b border-slate-100 px-3 py-2 text-slate-700 align-top">{renderInline(c)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+      continue; // i already advanced inside the inner while
+    }
+
+    if (line.startsWith('# ')) {
+      elements.push(<h1 key={k++} className="text-2xl font-bold text-sg-text mt-8 mb-4 pb-2 border-b-2 border-sg/20">{renderInline(line.slice(2))}</h1>);
+    } else if (line.startsWith('## ')) {
+      elements.push(<h2 key={k++} className="text-lg font-bold text-sg mt-7 mb-3 pb-1 border-b border-slate-200">{renderInline(line.slice(3))}</h2>);
+    } else if (line.startsWith('### ')) {
+      elements.push(<h3 key={k++} className="text-sm font-bold text-sg-text mt-5 mb-2 uppercase tracking-wide">{renderInline(line.slice(4))}</h3>);
+    } else if (line.startsWith('#### ')) {
+      elements.push(<h4 key={k++} className="text-sm font-semibold text-sg-text mt-4 mb-1">{renderInline(line.slice(5))}</h4>);
+    } else if (/^-{3,}$/.test(tr)) {
+      elements.push(<hr key={k++} className="my-6 border-slate-200" />);
+    } else if (line.startsWith('> ')) {
+      elements.push(
+        <blockquote key={k++} className="border-l-4 border-sg/50 bg-sg-light pl-4 pr-3 py-2 my-2 rounded-r text-sm text-slate-700">
+          {renderInline(line.slice(2))}
+        </blockquote>
+      );
+    } else if (line.startsWith('  - ') || line.startsWith('  * ')) {
+      elements.push(
+        <div key={k++} className="flex items-start gap-2 ml-5 py-0.5">
+          <span className="mt-2.5 h-1 w-1 rounded-full bg-slate-400 flex-shrink-0" />
+          <span className="text-sm text-slate-600 leading-6">{renderInline(line.slice(4))}</span>
+        </div>
+      );
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      elements.push(
+        <div key={k++} className="flex items-start gap-2 py-0.5">
+          <span className="mt-2.5 h-1.5 w-1.5 rounded-full bg-sg/60 flex-shrink-0" />
+          <span className="text-sm text-slate-700 leading-6">{renderInline(line.slice(2))}</span>
+        </div>
+      );
+    } else if (/^\d+\. /.test(line)) {
+      const num = line.match(/^(\d+)\./)?.[1] ?? '1';
+      elements.push(
+        <div key={k++} className="flex items-start gap-2.5 py-0.5">
+          <span className="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-sg/10 text-[10px] font-bold text-sg">{num}</span>
+          <span className="text-sm text-slate-700 leading-6">{renderInline(line.replace(/^\d+\. /, ''))}</span>
+        </div>
+      );
+    } else if (tr === '') {
+      elements.push(<div key={k++} className="h-2" />);
+    } else {
+      elements.push(<p key={k++} className="text-sm text-slate-700 leading-7">{renderInline(line)}</p>);
+    }
+    i++;
   }
+
   return <div className="space-y-0.5">{elements}</div>;
 }
 
