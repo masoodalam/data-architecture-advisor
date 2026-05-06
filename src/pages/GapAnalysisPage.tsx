@@ -716,7 +716,7 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
 
             {/* Question dock */}
             <div className="border-t border-slate-200 bg-white p-5 flex-shrink-0">
-              {currentQuestion ? (
+              {currentQ ? (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${SEV_BADGE[currentQ?.priority === 'high' ? 'high' : currentQ?.priority === 'medium' ? 'medium' : 'low']}`}>
