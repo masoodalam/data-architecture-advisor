@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import './db.js'; // initialise SQLite and recover stuck jobs on startup
 import { aiRouter } from './routes/ai.js';
 import { assessRouter } from './routes/assessmentChat.js';
 import { gapRouter } from './routes/gapAnalysis.js';

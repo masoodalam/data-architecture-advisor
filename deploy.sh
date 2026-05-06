@@ -22,6 +22,9 @@ echo "==> Stopping old containers..."
 docker stop  "$BACKEND_CONTAINER"  "$FRONTEND_CONTAINER" 2>/dev/null || true
 docker rm    "$BACKEND_CONTAINER"  "$FRONTEND_CONTAINER" 2>/dev/null || true
 
+echo "==> Ensuring data directory exists..."
+mkdir -p /opt/advisor-data/uploads
+
 echo "==> Starting backend..."
 docker run -d \
   --name "$BACKEND_CONTAINER" \
@@ -29,6 +32,7 @@ docker run -d \
   -e AWS_REGION=eu-west-2 \
   -e BEDROCK_MODEL_ID=anthropic.claude-opus-4-6-v1 \
   -e PORT=3001 \
+  -v /opt/advisor-data:/data \
   --restart unless-stopped \
   "$BACKEND_IMAGE"
 
