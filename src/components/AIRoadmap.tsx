@@ -44,7 +44,7 @@ export function AIRoadmap({ result }: AIRoadmapProps) {
           <Sparkles className="h-5 w-5 text-violet-600" />
           <h3 className="text-lg font-bold text-ink">AI-generated roadmap</h3>
           <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-700">
-            Personalised · Claude Opus
+            Personalised · Claude Opus 4.6
           </span>
         </div>
         {(state === 'done' || state === 'error') && (

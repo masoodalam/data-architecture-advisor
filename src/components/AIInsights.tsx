@@ -37,7 +37,7 @@ export function AIInsights({ result, answers }: AIInsightsProps) {
           <Sparkles className="h-5 w-5 text-violet-600" />
           <h3 className="text-lg font-bold text-ink">AI executive analysis</h3>
           <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-700">
-            Claude Opus · AWS Bedrock
+            Claude Opus 4.6 · AWS Bedrock
           </span>
         </div>
         {(state === 'done' || state === 'error') && (

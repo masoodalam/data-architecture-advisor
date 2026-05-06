@@ -105,7 +105,7 @@ export function AIChat({ result }: AIChatProps) {
             {messages.length === 0 && (
               <div className="space-y-3">
                 <p className="text-xs text-slate-500 text-center">
-                  Claude Opus knows your assessment scores. Ask anything about your results.
+                  Claude Opus 4.6 knows your assessment scores. Ask anything about your results.
                 </p>
                 <div className="space-y-2">
                   {STARTERS.map(s => (
@@ -164,7 +164,7 @@ export function AIChat({ result }: AIChatProps) {
               </button>
             </div>
             <p className="mt-1.5 text-center text-[10px] text-slate-400">
-              Claude Opus · AWS Bedrock · eu-west-2 · Enter to send
+              Claude Opus 4.6 · AWS Bedrock · eu-west-2 · Enter to send
             </p>
           </div>
         </div>
