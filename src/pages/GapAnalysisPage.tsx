@@ -422,6 +422,7 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
   const [answering,       setAnswering]       = useState(false);
   const [answerCount,     setAnswerCount]     = useState(0);
   const [locallyAnswered, setLocallyAnswered] = useState<Set<string>>(new Set());
+  const [confirmReset,    setConfirmReset]    = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -563,6 +564,12 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
     setImagePreview(null); setImageBase64(null);
     setFileName(''); setContext(''); setUploadError(null);
     setCurrentQ(null); setAnswerCount(0); setLocallyAnswered(new Set());
+    setConfirmReset(false);
+  }
+
+  function handleReset() {
+    if (confirmReset) { startNew(); }
+    else { setConfirmReset(true); setTimeout(() => setConfirmReset(false), 4000); }
   }
 
   // ── Derived data ───────────────────────────────────────────────────────────
@@ -603,9 +610,24 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
               </div>
             )}
             {jobId && (
-              <button onClick={startNew} className="text-xs text-white/60 hover:text-white transition-colors">
-                New analysis
-              </button>
+              confirmReset ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/80">Lose current session?</span>
+                  <button onClick={startNew}
+                    className="rounded border border-red-400 bg-red-500 px-2.5 py-1 text-xs font-bold text-white hover:bg-red-600 transition-colors">
+                    Yes, reset
+                  </button>
+                  <button onClick={() => setConfirmReset(false)}
+                    className="text-xs text-white/60 hover:text-white transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button onClick={handleReset}
+                  className="rounded border border-white/30 px-3 py-1.5 text-xs font-semibold text-white hover:border-white/60 hover:bg-white/10 transition-colors">
+                  Start new analysis
+                </button>
+              )
             )}
           </div>
         </div>
@@ -721,6 +743,26 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
               <h2 className="text-xl font-bold text-sg-text">Analysing your architecture…</h2>
               <p className="mt-2 text-sm text-slate-500">Claude is working through 18 architectural dimensions</p>
 
+              <div className="mt-6">
+                {confirmReset ? (
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-sm text-slate-600">Discard this session?</span>
+                    <button onClick={startNew}
+                      className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100 transition-colors">
+                      Yes, start new
+                    </button>
+                    <button onClick={() => setConfirmReset(false)} className="text-sm text-slate-400 hover:text-slate-600 transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={handleReset}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-colors">
+                    Start new analysis
+                  </button>
+                )}
+              </div>
+
               {/* Early component results */}
               {components && (
                 <div className="mt-6 text-left rounded-xl bg-white border border-slate-200 p-5 shadow-card">
@@ -793,6 +835,28 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
                   <span className={`text-xs font-bold ${text}`}>{analysis.gaps.filter(g => g.severity === sev).length}</span>
                 </div>
               ))}
+            </div>
+            <div className="p-4 border-t border-slate-100 flex-shrink-0">
+              {confirmReset ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-slate-500">Discard this session and start fresh?</p>
+                  <div className="flex gap-2">
+                    <button onClick={startNew}
+                      className="flex-1 rounded-lg border border-red-200 bg-red-50 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 transition-colors">
+                      Yes, start new
+                    </button>
+                    <button onClick={() => setConfirmReset(false)}
+                      className="flex-1 rounded-lg border border-slate-200 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={handleReset}
+                  className="w-full rounded-lg border border-slate-200 py-2 text-xs font-semibold text-slate-500 hover:border-sg/40 hover:text-sg hover:bg-sg-light transition-colors">
+                  Start new analysis
+                </button>
+              )}
             </div>
           </aside>
 
@@ -948,15 +1012,21 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
             <div className="bg-white rounded-xl border border-slate-200 shadow-card px-8 py-8">
               <MarkdownReport markdown={job.report} />
             </div>
-            <div className="mt-6 flex gap-3 justify-end">
-              <button onClick={() => setJob(j => j ? { ...j, status: 'needs_clarification' } : j)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                Back to review
+            <div className="mt-6 flex flex-wrap gap-3 justify-between items-center">
+              <button onClick={handleReset}
+                className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${confirmReset ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                {confirmReset ? 'Confirm — start new' : 'Start new analysis'}
               </button>
-              <button onClick={() => window.print()}
-                className="rounded-lg bg-sg px-4 py-2 text-sm font-bold text-white hover:bg-sg-hover transition-colors">
-                Print / Save PDF
-              </button>
+              <div className="flex gap-3">
+                <button onClick={() => setJob(j => j ? { ...j, status: 'needs_clarification' } : j)}
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                  Back to review
+                </button>
+                <button onClick={() => window.print()}
+                  className="rounded-lg bg-sg px-4 py-2 text-sm font-bold text-white hover:bg-sg-hover transition-colors">
+                  Print / Save PDF
+                </button>
+              </div>
             </div>
           </div>
         </main>
@@ -984,14 +1054,14 @@ export function GapAnalysisPage({ onBack }: { onBack: () => void }) {
                   className="mt-2 text-sg font-semibold hover:underline">View partial results →</button>
               </div>
             )}
-            <div className="mt-5 flex gap-3 justify-center">
+            <div className="mt-5 flex gap-3 justify-center flex-wrap">
               <button onClick={handleRetry}
                 className="flex items-center gap-2 rounded-xl bg-sg px-5 py-2.5 text-sm font-bold text-white hover:bg-sg-hover transition-colors shadow-lg">
                 <RefreshCw className="h-4 w-4" /> Retry analysis
               </button>
-              <button onClick={startNew}
-                className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                Start new
+              <button onClick={handleReset}
+                className={`rounded-xl border px-5 py-2.5 text-sm font-semibold transition-colors ${confirmReset ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                {confirmReset ? 'Confirm — start new' : 'Start new analysis'}
               </button>
             </div>
             {/* Steps completed before failure */}
